@@ -31,6 +31,8 @@ const FIELD_MASK = [
   'places.userRatingCount',
   'places.photos',
   'places.businessStatus',
+  'places.editorialSummary',
+  'places.googleMapsUri',
 ].join(',');
 
 const BATCH_SIZE = 10;
@@ -122,7 +124,7 @@ function generateSlug(name, usedSlugs) {
 // ---------------------------------------------------------------------------
 
 function extractAddressComponents(components) {
-  const result = { city: '', state: '', zip: '' };
+  const result = { city: '', state: '', zip: '', county: null };
   if (!Array.isArray(components)) return result;
 
   for (const comp of components) {
@@ -131,6 +133,8 @@ function extractAddressComponents(components) {
       result.city = comp.longText ?? comp.shortText ?? '';
     } else if (types.includes('administrative_area_level_1')) {
       result.state = comp.shortText ?? comp.longText ?? '';
+    } else if (types.includes('administrative_area_level_2')) {
+      result.county = comp.longText ?? null;
     } else if (types.includes('postal_code')) {
       result.zip = comp.longText ?? comp.shortText ?? '';
     }
@@ -144,7 +148,7 @@ function extractAddressComponents(components) {
 // ---------------------------------------------------------------------------
 
 function transformPlace(place, usedSlugs) {
-  const { city, state, zip } = extractAddressComponents(place.addressComponents);
+  const { city, state, zip, county } = extractAddressComponents(place.addressComponents);
   const name = place.displayName?.text ?? '';
 
   return {
@@ -155,15 +159,19 @@ function transformPlace(place, usedSlugs) {
     city,
     state,
     zip,
-    latitude:  place.location?.latitude  ?? null,
-    longitude: place.location?.longitude ?? null,
+    county,
+    lat:  place.location?.latitude  ?? null,
+    lng: place.location?.longitude ?? null,
     phone:   place.nationalPhoneNumber ?? '',
     website: place.websiteUri ?? '',
-    photo_refs: (place.photos ?? []).map(p => p.name),
+    description: place.editorialSummary?.text ?? null,
+    maps_url: place.googleMapsUri ?? null,
+    photos: (place.photos ?? []).map(p => p.name),
     rating:       place.rating          ?? null,
     review_count: place.userRatingCount ?? null,
+    verified: false,
     operator_id: null,
-    _source: 'google_places',
+    source: 'google_places',
     _google_place_id: place.id ?? '',
     _imported_at: new Date().toISOString(),
   };
