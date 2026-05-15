@@ -98,7 +98,7 @@ async function main() {
 
     const currentStatus = existingStatus.get(id);
 
-    if (currentStatus !== undefined && currentStatus !== 'draft') {
+    if (currentStatus !== undefined && currentStatus !== 'pending') {
       // Record exists and has been promoted — preserve it
       skipped.push({ id, status: currentStatus });
       continue;

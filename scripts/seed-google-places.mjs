@@ -154,7 +154,7 @@ function transformPlace(place, usedSlugs) {
   return {
     name,
     slug: generateSlug(name, usedSlugs),
-    status: 'draft',
+    status: 'pending',
     address: place.formattedAddress ?? '',
     city,
     state,
